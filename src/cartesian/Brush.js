@@ -4,7 +4,7 @@
 import React, { Component, Children } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import { scalePoint } from 'd3-scale';
+import { scaleLinear } from 'd3-scale';
 import _ from 'lodash';
 import { getValueByDataKey } from '../util/ChartUtils';
 import pureRender from '../util/PureRender';
@@ -38,6 +38,7 @@ class Brush extends Component {
 
     dataKey: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.func]),
     data: PropTypes.array,
+    domain: PropTypes.array,
     startIndex: PropTypes.number,
     endIndex: PropTypes.number,
     tickFormatter: PropTypes.func,
@@ -83,7 +84,6 @@ class Brush extends Component {
       nextProps.travellerWidth !== travellerWidth
     ) {
       this.scale.range([nextProps.x, nextProps.x + nextProps.width - nextProps.travellerWidth]);
-      this.scaleValues = this.scale.domain().map(entry => this.scale(entry));
 
       this.setState({
         startX: this.scale(nextProps.startIndex),
@@ -94,7 +94,6 @@ class Brush extends Component {
 
   componentWillUnmount() {
     this.scale = null;
-    this.scaleValues = null;
 
     if (this.leaveTimer) {
       clearTimeout(this.leaveTimer);
@@ -102,34 +101,15 @@ class Brush extends Component {
     }
   }
 
-  static getIndexInRange(range, x) {
-    const len = range.length;
-    let start = 0;
-    let end = len - 1;
-
-    while (end - start > 1) {
-      const middle = Math.floor((start + end) / 2);
-
-      if (range[middle] > x) {
-        end = middle;
-      } else {
-        start = middle;
-      }
-    }
-
-    return x >= range[end] ? end : start;
-  }
-
   getIndex({ startX, endX }) {
-    const { gap, data } = this.props;
-    const lastIndex = data.length - 1;
+    const { gap } = this.props;
     const min = Math.min(startX, endX);
     const max = Math.max(startX, endX);
-    const minIndex = this.constructor.getIndexInRange(this.scaleValues, min);
-    const maxIndex = this.constructor.getIndexInRange(this.scaleValues, max);
+    const minIndex = this.scale.invert(min);
+    const maxIndex = this.scale.invert(max);
     return {
       startIndex: minIndex - minIndex % gap,
-      endIndex: maxIndex === lastIndex ? lastIndex : maxIndex - maxIndex % gap,
+      endIndex: maxIndex - maxIndex % gap,
     };
   }
 
@@ -279,12 +259,10 @@ class Brush extends Component {
   }
 
   updateScale(props) {
-    const { data, startIndex, endIndex, x, width, travellerWidth } = props;
-    const len = data.length;
-    this.scale = scalePoint()
-      .domain(_.range(0, len))
+    const {domain, startIndex, endIndex, x, width, travellerWidth } = props;
+    this.scale = scaleLinear()
+      .domain(domain)
       .range([x, x + width - travellerWidth]);
-    this.scaleValues = this.scale.domain().map(entry => this.scale(entry));
     return {
       isTextActive: false,
       isSlideMoving: false,
