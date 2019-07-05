@@ -1,3 +1,5 @@
+# **ATTENTION**: This is a fork of the official recharts repository and contains additions & fixes that were not available in the official repository at the time of forking. For detailed information about why this fork was needed and what we did change, look at the **[`fork` directory](./fork)**
+
 # Recharts
 
 [![Rocket.Chat](https://demo.rocket.chat/images/join-chat.svg)](https://demo.rocket.chat/channel/recharts)
