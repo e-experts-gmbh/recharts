@@ -47,6 +47,7 @@ class Brush extends Component {
 
     onChange: PropTypes.func,
     updateId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    leaveTimeOut: PropTypes.number,
   };
 
   static defaultProps = {
@@ -56,6 +57,7 @@ class Brush extends Component {
     fill: '#fff',
     stroke: '#666',
     padding: { top: 1, right: 1, bottom: 1, left: 1 },
+    leaveTimeOut: 1000,
   };
 
   constructor(props) {
@@ -148,7 +150,7 @@ class Brush extends Component {
 
   handleLeaveWrapper = () => {
     if (this.state.isTravellerMoving || this.state.isSlideMoving) {
-      this.leaveTimer = setTimeout(this.handleDragEnd, 1000);
+      this.leaveTimer = setTimeout(this.handleDragEnd, this.props.leaveTimeOut);
     }
   };
 

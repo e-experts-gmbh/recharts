@@ -9,7 +9,7 @@ import _ from 'lodash';
 import pureRender from '../util/PureRender';
 import Layer from '../container/Layer';
 import LabelList from '../component/LabelList';
-import { PRESENTATION_ATTRIBUTES, EVENT_ATTRIBUTES, LEGEND_TYPES,
+import { PRESENTATION_ATTRIBUTES, EVENT_ATTRIBUTES, LEGEND_TYPES, TOOLTIP_TYPES,
   getPresentationAttributes, filterEventsOfChild, isSsr, findAllByType } from '../util/ReactUtils';
 import ZAxis from './ZAxis';
 import Curve from '../shape/Curve';
@@ -40,6 +40,7 @@ class Scatter extends Component {
       'monotoneX', 'monotoneY', 'monotone', 'step', 'stepBefore', 'stepAfter',
     ]), PropTypes.func]),
     legendType: PropTypes.oneOf(LEGEND_TYPES),
+    tooltipType: PropTypes.oneOf(TOOLTIP_TYPES),
     className: PropTypes.string,
     name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
@@ -97,7 +98,8 @@ class Scatter extends Component {
    * @return {Array}  Composed data
    */
   static getComposedData = ({ xAxis, yAxis, zAxis, item, displayedData, onItemMouseLeave,
-    onItemMouseEnter, offset, xAxisTicks }) => {
+    onItemMouseEnter, offset, xAxisTicks, yAxisTicks }) => {
+    const { tooltipType } = item.props;
     const cells = findAllByType(item.props.children, Cell);
     const xAxisDataKey = _.isNil(xAxis.dataKey) ? item.props.dataKey : xAxis.dataKey;
     const yAxisDataKey = _.isNil(yAxis.dataKey) ? item.props.dataKey : yAxis.dataKey;
@@ -111,20 +113,20 @@ class Scatter extends Component {
       const y = entry[yAxisDataKey];
       const z = (!_.isNil(zAxisDataKey) && entry[zAxisDataKey]) || '-';
       const tooltipPayload = [
-        { name: xAxis.name || xAxis.dataKey, unit: xAxis.unit || '', value: x, payload: entry },
-        { name: yAxis.name || yAxis.dataKey, unit: yAxis.unit || '', value: y, payload: entry },
+        { name: xAxis.name || xAxis.dataKey, unit: xAxis.unit || '', value: x, payload: entry, dataKey: xAxisDataKey, type: tooltipType },
+        { name: yAxis.name || yAxis.dataKey, unit: yAxis.unit || '', value: y, payload: entry, dataKey: yAxisDataKey, type: tooltipType },
       ];
 
       if (z !== '-') {
         tooltipPayload.push({
-          name: zAxis.name || zAxis.dataKey, unit: zAxis.unit || '', value: z, payload: entry,
+          name: zAxis.name || zAxis.dataKey, unit: zAxis.unit || '', value: z, payload: entry, dataKey: zAxisDataKey, type: tooltipType,
         });
       }
       const cx = getCateCoordinateOfLine({
-        axis: xAxis, ticks: xAxisTicks, bandSize: xBandSize, entry, index,
+        axis: xAxis, ticks: xAxisTicks, bandSize: xBandSize, entry, index, dataKey: xAxisDataKey,
       });
       const cy = getCateCoordinateOfLine({
-        axis: yAxis, ticks: xAxisTicks, bandSize: yBandSize, entry, index,
+        axis: yAxis, ticks: yAxisTicks, bandSize: yBandSize, entry, index, dataKey: yAxisDataKey,
       });
       const size = z !== '-' ? zAxis.scale(z) : defaultZ;
       const radius = Math.sqrt(Math.max(size, 0) / Math.PI);

@@ -36,7 +36,7 @@ export const getDomainOfDataByKey = (data, key, type, filterNil) => {
   if (type === 'number') {
     const domain = flattenData.filter(entry => isNumber(entry) || parseFloat(entry, 10));
 
-    return [Math.min.apply(null, domain), Math.max.apply(null, domain)];
+    return domain.length ? [_.min(domain), _.max(domain)] : [Infinity, -Infinity];
   }
 
   const validateData = filterNil ?
@@ -743,7 +743,7 @@ export const getStackGroupsByAxisId = (
  */
 export const calculateDomainOfTicks = (ticks, type) => {
   if (type === 'number') {
-    return [Math.min.apply(null, ticks), Math.max.apply(null, ticks)];
+    return [_.min(ticks), _.max(ticks)];
   }
 
   return ticks;
@@ -782,7 +782,7 @@ export const getTicksOfScale = (scale, opts) => {
   return null;
 };
 
-export const getCateCoordinateOfLine = ({ axis, ticks, bandSize, entry, index }) => {
+export const getCateCoordinateOfLine = ({ axis, ticks, bandSize, entry, index, dataKey }) => {
   if (axis.type === 'category') {
     // find coordinate of category axis by the value of category
     if (!axis.allowDuplicatedCategory && axis.dataKey && !_.isNil(entry[axis.dataKey])) {
@@ -796,7 +796,7 @@ export const getCateCoordinateOfLine = ({ axis, ticks, bandSize, entry, index })
     return ticks[index] ? ticks[index].coordinate + bandSize / 2 : null;
   }
 
-  const value = getValueByDataKey(entry, axis.dataKey);
+  const value = getValueByDataKey(entry, !_.isNil(dataKey) ? dataKey : axis.dataKey);
 
   return !_.isNil(value) ? axis.scale(value) : null;
 };
@@ -916,8 +916,8 @@ export const getStackedDataOfItem = (item, stackGroups) => {
 
 const getDomainOfSingle = data => (
   data.reduce((result, entry) => [
-    Math.min.apply(null, entry.concat([result[0]]).filter(isNumber)),
-    Math.max.apply(null, entry.concat([result[1]]).filter(isNumber)),
+    _.min(entry.concat([result[0]]).filter(isNumber)),
+    _.max(entry.concat([result[1]]).filter(isNumber)),
   ], [Infinity, -Infinity])
 );
 

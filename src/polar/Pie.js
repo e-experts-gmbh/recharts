@@ -14,7 +14,7 @@ import Text from '../component/Text';
 import Label from '../component/Label';
 import LabelList from '../component/LabelList';
 import Cell from '../component/Cell';
-import { PRESENTATION_ATTRIBUTES, EVENT_ATTRIBUTES, LEGEND_TYPES,
+import { PRESENTATION_ATTRIBUTES, EVENT_ATTRIBUTES, LEGEND_TYPES, TOOLTIP_TYPES,
   getPresentationAttributes, findAllByType, filterEventsOfChild, isSsr } from '../util/ReactUtils';
 import { polarToCartesian, getMaxRadius } from '../util/PolarUtils';
 import { isNumber, getPercentValue, mathSign, interpolateNumber, uniqueId } from '../util/DataUtils';
@@ -46,6 +46,7 @@ class Pie extends Component {
     blendStroke: PropTypes.bool,
     minAngle: PropTypes.number,
     legendType: PropTypes.oneOf(LEGEND_TYPES),
+    tooltipType: PropTypes.oneOf(TOOLTIP_TYPES),
     maxRadius: PropTypes.number,
 
     sectors: PropTypes.arrayOf(PropTypes.object),
@@ -152,7 +153,7 @@ class Pie extends Component {
     if (!pieData || !pieData.length) { return []; }
 
     const { cornerRadius, startAngle, endAngle, paddingAngle, dataKey, nameKey,
-      valueKey } = item.props;
+      valueKey, tooltipType } = item.props;
     const minAngle = Math.abs(item.props.minAngle);
     const coordinate = Pie.parseCoordinateOfPie(item, offset);
     const len = pieData.length;
@@ -198,7 +199,7 @@ class Pie extends Component {
           (minAngle + percent * realTotalAngle);
         const midAngle = (tempStartAngle + tempEndAngle) / 2;
         const middleRadius = (coordinate.innerRadius + coordinate.outerRadius) / 2;
-        const tooltipPayload = [{ name, value: val, payload: entry }];
+        const tooltipPayload = [{ name, value: val, payload: entry, dataKey: realDataKey, type: tooltipType }];
         const tooltipPosition = polarToCartesian(
           coordinate.cx, coordinate.cy, middleRadius, midAngle
         );
@@ -356,6 +357,7 @@ class Pie extends Component {
         ...customLabelLineProps,
         index: i,
         points: [polarToCartesian(entry.cx, entry.cy, entry.outerRadius, midAngle), endPoint],
+        key: 'line'
       };
       let realDataKey = dataKey;
       // TODO: compatible to lower versions
@@ -439,7 +441,7 @@ class Pie extends Component {
 
             sectors.forEach((entry, index) => {
               const prev = prevSectors && prevSectors[index];
-              const paddingAngle = index > 0 ? entry.paddingAngle : 0;
+              const paddingAngle = index > 0 ? _.get(entry, 'paddingAngle', 0) : 0;
 
               if (prev) {
                 const angleIp = interpolateNumber(
@@ -493,7 +495,7 @@ class Pie extends Component {
 
   render() {
     const { hide, sectors, className, label, cx, cy, innerRadius,
-      outerRadius, isAnimationActive, prevSectors, id } = this.props;
+      outerRadius, isAnimationActive, prevSectors } = this.props;
 
     if (hide || !sectors || !sectors.length || !isNumber(cx) ||
       !isNumber(cy) || !isNumber(innerRadius) ||
@@ -505,9 +507,7 @@ class Pie extends Component {
 
     return (
       <Layer className={layerClass}>
-        <g clipPath={`url(#${_.isNil(id) ? this.id : id})`}>
-          {this.renderSectors()}
-        </g>
+        {this.renderSectors()}
         {label && this.renderLabels(sectors)}
         {Label.renderCallByParent(this.props, null, false)}
         {(!isAnimationActive || (prevSectors && _.isEqual(prevSectors, sectors))) &&

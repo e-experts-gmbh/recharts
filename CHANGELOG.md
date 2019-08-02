@@ -1,4 +1,80 @@
-## 1.4.2(Dec 21,2018)
+## 1.6.2 (May 22, 2019)
+
+### feat
+
+- Add cornerIsExternal prop to center rounded corner at radial bar edge
+- Add new component `Customized` to render customized content which can user internal state and props
+- Add props `tooltipType="none"` to hide tooltip data for Area, Bar, Line, Scatter, Funnel, Pie, Radar, RadialBar
+
+### fix
+
+- fix the order of tooltip items when not specify itemSorter
+- Fix typo in example of RadialBarChart
+
+
+## 1.6.1 (May 20, 2019)
+
+### fix
+
+- fix "Maximum call stack size exceeded" error when use label={<Label />}
+- fix bug of "Cannot read property reduce of undefined in Text.js"
+- fix `getDomainOfDataByKey` when all the values are null or undefined
+
+## 1.6.0(May 14, 2019)
+
+### fix
+
+- Use y-axis ticks to determine y-axis category
+- fix bug in ThreeMap inside ResponsiveContainer, fix #1692
+- Avoid same keys on label and line, fixes #1302
+- use _.max to replace Math.max.apply, use _.min to replace Math.min.apply
+
+### feat
+
+- Adds forceCornerRadius prop to RadialBar
+- calculate width with aspect and height when width is falsey
+
+## 1.5.0(Feb 15, 2019)
+
+### fix
+
+- fix the bug of ReferenceLine when calculate coordinates, fix #1643
+- fix bug of Scatter in ComposedChart
+
+### feat
+
+- allow aria-* attributes and "role", "focusable", "tabIndex" of charts, fix #1226, fix #1584
+- add new props "paylodUniqBy" to Tooltip and Legend 
+
+## 1.4.4(Feb 15, 2019)
+
+### fix
+
+- fix the bug of automatically calculate the y-coordinate of yAxis tick when tick has unit, fix #1623
+- render clipPath in <defs />, fix bug in generateCategoricalChart, fix #1592
+- remove React.Fragment in DefaultTooltipContent, fix #1645
+
+## 1.4.3(Feb 12, 2019)
+
+### fix
+
+- fix bug of <Rectangle /> when width < 0 && `radius` is not null, fix #1596
+- fix paddingAngle of Pie when render only <Pie /> not <PieChart />
+- fix onMouseEnter and Tooltip for Pie on FireFox
+
+### feat
+
+- Make the timeOut timer for the brush configurable through props
+- Allow to format name in Tooltips
+
+### dep
+
+- Update lodash version to 4.17.5 and install webpack-dev-server@3.1.14 dev dependency
+- Updated package.json to mark effectful modules
+- chore: update version of sinon, from 4.x to 7.x
+
+
+## 1.4.2(Dec 21, 2018)
 
 ### refactor
 

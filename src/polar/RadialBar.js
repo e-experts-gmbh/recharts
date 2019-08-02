@@ -8,7 +8,7 @@ import Animate from 'react-smooth';
 import _ from 'lodash';
 import Sector from '../shape/Sector';
 import Layer from '../container/Layer';
-import { PRESENTATION_ATTRIBUTES, LEGEND_TYPES, findAllByType,
+import { PRESENTATION_ATTRIBUTES, LEGEND_TYPES, TOOLTIP_TYPES, findAllByType,
   getPresentationAttributes, filterEventsOfChild, isSsr } from '../util/ReactUtils';
 import pureRender from '../util/PureRender';
 import LabelList from '../component/LabelList';
@@ -35,6 +35,8 @@ class RadialBar extends Component {
     dataKey: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.func]).isRequired,
 
     cornerRadius: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    forceCornerRadius: PropTypes.bool,
+    cornerIsExternal: PropTypes.bool,
     minPointSize: PropTypes.number,
     maxBarSize: PropTypes.number,
     data: PropTypes.arrayOf(PropTypes.shape({
@@ -45,6 +47,7 @@ class RadialBar extends Component {
       value: PropTypes.value,
     })),
     legendType: PropTypes.oneOf(LEGEND_TYPES),
+    tooltipType: PropTypes.oneOf(TOOLTIP_TYPES),
     label: PropTypes.oneOfType([
       PropTypes.bool, PropTypes.func, PropTypes.element, PropTypes.object,
     ]),
@@ -76,6 +79,8 @@ class RadialBar extends Component {
     animationBegin: 0,
     animationDuration: 1500,
     animationEasing: 'ease',
+    forceCornerRadius: false,
+    cornerIsExternal: false,
   };
 
   static getComposedData = ({ item, props, radiusAxis, radiusAxisTicks, angleAxis, angleAxisTicks,
@@ -218,6 +223,8 @@ class RadialBar extends Component {
         ...filterEventsOfChild(this.props, entry, i),
         key: `sector-${i}`,
         className: 'recharts-radial-bar-sector',
+        forceCornerRadius: others.forceCornerRadius,
+        cornerIsExternal: others.cornerIsExternal,
       };
 
       return this.constructor.renderSectorShape(i === activeIndex ? activeShape : shape, props);

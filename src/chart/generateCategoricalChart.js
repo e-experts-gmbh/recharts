@@ -542,14 +542,13 @@ const generateCategoricalChart = ({
         activeIndex >= displayedData.length) {
         return null;
       }
-
       // get data by activeIndex when the axis don't allow duplicated category
       return graphicalItems.reduce((result, child) => {
         const { hide } = child.props;
 
         if (hide) { return result; }
 
-        const { dataKey, name, unit, formatter, data } = child.props;
+        const { dataKey, name, unit, formatter, data, tooltipType } = child.props;
         let payload;
 
         if (tooltipAxis.dataKey && !tooltipAxis.allowDuplicatedCategory) {
@@ -560,12 +559,14 @@ const generateCategoricalChart = ({
         }
 
         if (!payload) { return result; }
+
         return [...result, {
           ...getPresentationAttributes(child),
           dataKey, unit, formatter,
           name: name || dataKey,
           color: getMainColorOfGraphicItem(child),
           value: getValueByDataKey(payload, dataKey),
+          type: tooltipType,
           payload,
         }];
       }, []);
@@ -1306,7 +1307,7 @@ const generateCategoricalChart = ({
       });
 
       if (!props) { return null; }
-
+      
       const { item, ...otherProps } = props;
 
       return cloneElement(item, {
@@ -1474,14 +1475,21 @@ const generateCategoricalChart = ({
       return [graphicalItem, null];
     };
 
+    renderCustomized = element => cloneElement(element, {
+      ...this.props,
+      ...this.state
+    })
+
     renderClipPath() {
       const { clipPathId } = this;
       const { offset: { left, top, height, width } } = this.state;
 
       return (
-        <clipPath id={clipPathId}>
-          <rect x={left} y={top} height={height} width={width} />
-        </clipPath>
+        <defs>
+          <clipPath id={clipPathId}>
+            <rect x={left} y={top} height={height} width={width} />
+          </clipPath>
+        </defs>
       );
     }
 
@@ -1511,6 +1519,7 @@ const generateCategoricalChart = ({
         PolarGrid: { handler: this.renderPolarGrid, once: true },
         PolarAngleAxis: { handler: this.renderPolarAxis },
         PolarRadiusAxis: { handler: this.renderPolarAxis },
+        Customized: { handler: this.renderCustomized }
       };
 
       // The "compact" mode is mainly used as the panorama within Brush
