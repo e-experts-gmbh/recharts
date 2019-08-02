@@ -65,8 +65,6 @@ class Brush extends Component {
       startX: this.handleTravellerDragStart.bind(this, 'startX'),
       endX: this.handleTravellerDragStart.bind(this, 'endX'),
     };
-    this.handleDragEnd = this.handleDragEnd.bind(this);
-    this.handleDrag = this.handleDrag.bind(this);
 
     this.state = props.data && props.data.length ? this.updateScale(props) : {};
   }
@@ -122,11 +120,6 @@ class Brush extends Component {
     return _.isFunction(tickFormatter) ? tickFormatter(text) : text;
   }
 
-  handleDragStart(e){
-    document.addEventListener("mouseup",this.handleDragEnd);
-    document.addEventListener("mousemove",this.handleDrag);
-  }
-
   handleDrag = (e) => {
     if (this.leaveTimer) {
       clearTimeout(this.leaveTimer);
@@ -147,8 +140,6 @@ class Brush extends Component {
   };
 
   handleDragEnd = () => {
-    document.removeEventListener("mouseup",this.handleDragEnd);
-    document.removeEventListener("mousemove",this.handleDrag);
     this.setState({
       isTravellerMoving: false,
       isSlideMoving: false,
@@ -220,20 +211,25 @@ class Brush extends Component {
       isSlideMoving: false,
       isTravellerMoving: true,
       movingTravellerId: id,
-      offset: event.pageX-this.state[id],
+      brushMoveStartX: event.pageX,
     });
   }
 
   handleTravellerMove(e) {
-    const { offset, movingTravellerId, endX, startX } = this.state;
+    const { brushMoveStartX, movingTravellerId, endX, startX } = this.state;
+    const prevValue = this.state[movingTravellerId];
 
     const { x, width, travellerWidth, onChange, gap, data } = this.props;
     const params = { startX: this.state.startX, endX: this.state.endX };
 
-    var min = movingTravellerId=="startX"?x:startX+travellerWidth;
-    var max = (movingTravellerId=="startX"?endX:x+width)-travellerWidth;
+    let delta = e.pageX - brushMoveStartX;
+    if (delta > 0) {
+      delta = Math.min(delta, x + width - travellerWidth - prevValue);
+    } else if (delta < 0) {
+      delta = Math.max(delta, x - prevValue);
+    }
 
-    params[movingTravellerId] = Math.min(max,Math.max(min,e.pageX-offset));
+    params[movingTravellerId] = prevValue + delta;
 
     const newIndex = this.getIndex(params);
     const { startIndex, endIndex } = newIndex;
@@ -251,7 +247,8 @@ class Brush extends Component {
     };
 
     this.setState({
-      [movingTravellerId]: params[movingTravellerId]
+      [movingTravellerId]: prevValue + delta,
+      brushMoveStartX: e.pageX,
     }, () => {
       if (onChange) {
         if (isFullGap()) {
@@ -419,8 +416,9 @@ class Brush extends Component {
     return (
       <Layer
         className={layerClass}
-        onMouseDown={this.handleDragStart.bind(this)}
+        onMouseMove={this.handleDrag}
         onMouseLeave={this.handleLeaveWrapper}
+        onMouseUp={this.handleDragEnd}
         onTouchEnd={this.handleDragEnd}
         onTouchMove={this.handleTouchMove}
         style={style}
